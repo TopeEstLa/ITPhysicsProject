@@ -64,7 +64,7 @@ for i in range(1, nt):
         it += 1
         final_densite[it][:] = densite[i][:]
 
-plot_title = "Marche Ascendante avec E/Vo=" + str(e)
+plot_title = "Puit de potentiel avec E/Vo=" + str(e)
 
 fig, ax = plt.subplots()
 line, = ax.plot([], [], lw=2)
