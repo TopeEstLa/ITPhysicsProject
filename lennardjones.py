@@ -1,40 +1,48 @@
-import numpy as np
+# Créé par zlach, le 09/06/2025 en Python 3.7
+
+from numpy import linspace, zeros, diag, arange
+from numpy.linalg import eigh
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
-import matplotlib
 
-matplotlib.use('TkAgg')
+# Paramètres physiques sans dimension
+N = 1000                      # Nombre de points
+x_min, x_max = 0.6, 4.0       # Domaine spatial (en unités de sigma)
+x = linspace(x_min, x_max, N)
+dx = x[1] - x[0]
 
-def V_LJ(r, epsilon, sigma):
-    r_safe = np.maximum(r, 1e-10)
-    return 4 * epsilon * ((sigma / r_safe)**12 - (sigma / r_safe)**6)
+# Potentiel de Lennard-Jones sans dimension
+def U(x):
+    return 4 * (1 / x**12 - 1 / x**6)
 
-def schrodinger_rhs(r, y):
-    u, v = y
-    V = V_LJ(r, epsilon, sigma)
-    du = v
-    dv = 2 * m / hbar**2 * (V - E) * u
-    return [du, dv]
+V = U(x)                      # Tableau du potentiel
 
-m = 1.0
-hbar = 1.0
-epsilon = 0.1
-sigma = 1.0
-E = -0.03
+# Construction de la matrice Hamiltonienne H = T + V
+# Matrice cinétique (differences finies centrées)
+T = diag([1]* (N-1), -1) + diag([-2]*N, 0) + diag([1]* (N-1), 1)
+T = - T / dx**2               # opérateur -d²/dx²
 
-r_min = 0.3  # 🔥 plus loin de la divergence
-r_max = 10
-y0 = [0.0, 1.0]
+# Matrice potentielle (diagonale)
+V_diag = diag(V)
 
-sol = solve_ivp(schrodinger_rhs, (r_min, r_max), y0, method='RK45', max_step=0.05)
+# Hamiltonien total
+H = T + V_diag
 
-if sol.success:
-    plt.plot(sol.t, sol.y[0], label='u(r)')
-    plt.xlabel('r')
-    plt.ylabel('u(r)')
-    plt.title('État stationnaire – Potentiel Lennard-Jones')
-    plt.grid()
-    plt.legend()
-    plt.show()
-else:
-    print("Erreur d'intégration :", sol.message)
+# Résolution de l’équation de Schrödinger : valeurs et vecteurs propres
+valeurs_propres, vecteurs_propres = eigh(H)
+
+# Affichage des 3 premiers états liés
+plt.figure(figsize=(10, 6))
+plt.plot(x, V, label='Potentiel V(x)', color='black')
+
+for n in range(3):
+    E = valeurs_propres[n]
+    psi = vecteurs_propres[:, n]
+    psi = psi / max(abs(psi))      # normalisation visuelle
+    plt.plot(x, psi + E, label=f'État {n}, E = {E:.3f}')
+
+plt.xlabel("x = r / σ")
+plt.ylabel("Énergie / Fonction d’onde")
+plt.title("États liés dans le potentiel de Lennard-Jones")
+plt.legend()
+plt.grid()
+plt.show()
