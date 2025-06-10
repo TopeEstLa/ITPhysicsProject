@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Paramètres physiques sans dimension
 N = 1000                      # Nombre de points
-x_min, x_max = 0.6, 4.0       # Domaine spatial (en unités de sigma)
+x_min, x_max = 0.7, 4.0       # Domaine spatial (en unités de sigma)
 x = linspace(x_min, x_max, N)
 dx = x[1] - x[0]
 
